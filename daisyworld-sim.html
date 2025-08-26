@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daisyworld - Climate Regulation Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 1400px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            font-size: 28px;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+        }
+
+        .world-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .canvas-container {
+            background: #222;
+            border: 3px solid #444;
+            border-radius: 5px;
+            padding: 10px;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            image-rendering: pixelated;
+            cursor: crosshair;
+            background: #000;
+        }
+
+        .controls-panel {
+            background: #1a1a1a;
+            border: 2px solid #444;
+            border-radius: 5px;
+            padding: 15px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group h3 {
+            color: #4fc3f7;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .slider-container {
+            margin-bottom: 12px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #333;
+            outline: none;
+            border-radius: 3px;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #4fc3f7;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #4fc3f7;
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background: #4fc3f7;
+            color: #000;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background: #29b6f6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.active {
+            background: #0288d1;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .daisy-palette {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .daisy-color {
+            width: 100%;
+            height: 30px;
+            border: 2px solid #333;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all 0.2s;
+        }
+
+        .daisy-color:hover {
+            transform: scale(1.1);
+            border-color: #4fc3f7;
+        }
+
+        .daisy-color.selected {
+            border-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .info-display {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 3px;
+            padding: 10px;
+            margin-top: 15px;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .graph-container {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 3px;
+            padding: 10px;
+            margin-top: 15px;
+            height: 150px;
+            position: relative;
+        }
+
+        .graph-title {
+            font-size: 10px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        #tempGraph {
+            width: 100%;
+            height: 120px;
+        }
+
+        .legend {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        .top-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tool-size {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #111;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .world-gen-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .world-gen-content {
+            background: #1a1a1a;
+            border: 2px solid #444;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .world-gen-content h2 {
+            color: #4fc3f7;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .world-preview {
+            width: 100%;
+            height: 200px;
+            border: 2px solid #333;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            image-rendering: pixelated;
+        }
+
+        .gen-controls {
+            margin-bottom: 20px;
+        }
+
+        .gen-button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌼 Daisyworld Climate Simulation 🌍</h1>
+        
+        <!-- World Generation Modal -->
+        <div id="worldGenModal" class="world-gen-modal">
+            <div class="world-gen-content">
+                <h2>🌍 Generate World</h2>
+                <canvas id="worldPreview" class="world-preview"></canvas>
+                
+                <div class="gen-controls">
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Land Coverage</span>
+                            <span id="landCoverageValue">40%</span>
+                        </div>
+                        <input type="range" id="landCoverage" min="10" max="90" value="40">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Continent Size</span>
+                            <span id="continentSizeValue">Medium</span>
+                        </div>
+                        <input type="range" id="continentSize" min="1" max="5" value="3">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Island Frequency</span>
+                            <span id="islandFreqValue">Medium</span>
+                        </div>
+                        <input type="range" id="islandFreq" min="0" max="100" value="50">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Initial Daisy Density</span>
+                            <span id="daisyDensityValue">20%</span>
+                        </div>
+                        <input type="range" id="daisyDensity" min="0" max="50" value="20">
+                    </div>
+                </div>
+                
+                <div class="gen-button-group">
+                    <button id="regenerateBtn">🎲 Regenerate</button>
+                    <button id="startSimBtn">✅ Start Simulation</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-layout">
+            <div class="world-section">
+                <div class="top-controls">
+                    <button id="toggleTemp">Show Temperature</button>
+                    <button id="pauseBtn">Pause</button>
+                    <button id="resetBtn">Reset World</button>
+                    <button id="newWorldBtn">New World</button>
+                    <div class="tool-size">
+                        Brush Size: 
+                        <input type="range" id="brushSize" min="1" max="5" value="2">
+                        <span id="brushSizeValue">2</span>
+                    </div>
+                </div>
+                
+                <div class="canvas-container">
+                    <canvas id="worldCanvas" width="800" height="400"></canvas>
+                </div>
+                
+                <div class="graph-container">
+                    <div class="graph-title">TEMPERATURE & POPULATION OVER TIME</div>
+                    <canvas id="tempGraph"></canvas>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ff6b6b;"></div>
+                            <span>Temperature</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #4ecdc4;"></div>
+                            <span>Total Daisies</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ffe66d;"></div>
+                            <span>Solar Input</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls-panel">
+                <div class="control-group">
+                    <h3>🎨 Daisy Painter</h3>
+                    <div class="daisy-palette" id="daisyPalette"></div>
+                    <button id="eraserBtn" style="width: 100%;">Eraser Tool</button>
+                </div>
+                
+                <div class="control-group">
+                    <h3>🌍 Geosphere</h3>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Continental Drift</span>
+                            <span id="driftValue">50</span>
+                        </div>
+                        <input type="range" id="driftRate" min="0" max="100" value="50">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Volcanic Activity</span>
+                            <span id="volcValue">30</span>
+                        </div>
+                        <input type="range" id="volcanic" min="0" max="100" value="30">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Erosion</span>
+                            <span id="erosionValue">50</span>
+                        </div>
+                        <input type="range" id="erosion" min="0" max="100" value="50">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>☁️ Atmosphere</h3>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Solar Input</span>
+                            <span id="solarValue">70</span>
+                        </div>
+                        <input type="range" id="solarInput" min="0" max="100" value="70">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Cloud Albedo</span>
+                            <span id="cloudAlbedoValue">50</span>
+                        </div>
+                        <input type="range" id="cloudAlbedo" min="0" max="100" value="50">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Greenhouse Effect</span>
+                            <span id="greenhouseValue">40</span>
+                        </div>
+                        <input type="range" id="greenhouse" min="0" max="100" value="40">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>🌱 Biosphere</h3>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Growth Rate</span>
+                            <span id="growthValue">50</span>
+                        </div>
+                        <input type="range" id="growthRate" min="0" max="100" value="50">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Mutation Rate</span>
+                            <span id="mutationValue">20</span>
+                        </div>
+                        <input type="range" id="mutationRate" min="0" max="100" value="20">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Thermal Tolerance</span>
+                            <span id="toleranceValue">50</span>
+                        </div>
+                        <input type="range" id="thermalTolerance" min="0" max="100" value="50">
+                    </div>
+                </div>
+                
+                <div class="info-display">
+                    <div class="info-row">
+                        <span>Global Temp:</span>
+                        <span id="globalTemp">22.5°C</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Total Daisies:</span>
+                        <span id="totalDaisies">0</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Planet Albedo:</span>
+                        <span id="planetAlbedo">0.50</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Time:</span>
+                        <span id="timeElapsed">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const WORLD_WIDTH = 100;
+        const WORLD_HEIGHT = 50;
+        const CELL_SIZE = 8;
+        
+        let world = [];
+        let temperature = [];
+        let showTemperature = false;
+        let isPaused = false;
+        let selectedDaisyType = 4;
+        let isErasing = false;
+        let brushSize = 2;
+        let time = 0;
+        
+        // World generation parameters
+        let worldGenParams = {
+            landCoverage: 40,
+            continentSize: 3,
+            islandFreq: 50,
+            daisyDensity: 20
+        };
+        
+        // History for graphs
+        let tempHistory = [];
+        let popHistory = [];
+        let solarHistory = [];
+        const MAX_HISTORY = 200;
+        
+        // Daisy types (8 shades from white to black)
+        const DAISY_COLORS = [
+            '#FFFFFF', // White (highest albedo)
+            '#E0E0E0',
+            '#C0C0C0',
+            '#A0A0A0',
+            '#808080',
+            '#606060',
+            '#404040',
+            '#202020'  // Black (lowest albedo)
+        ];
+        
+        const DAISY_ALBEDOS = [0.9, 0.75, 0.6, 0.5, 0.4, 0.3, 0.15, 0.05];
+        const GROUND_COLOR = '#8B7355';
+        const WATER_COLOR = '#4682B4';
+        
+        // Canvas setup
+        const canvas = document.getElementById('worldCanvas');
+        const ctx = canvas.getContext('2d');
+        const tempGraphCanvas = document.getElementById('tempGraph');
+        const tempGraphCtx = tempGraphCanvas.getContext('2d');
+        
+        // Initialize world
+        function initWorld() {
+            world = [];
+            temperature = [];
+            time = 0;
+            tempHistory = [];
+            popHistory = [];
+            solarHistory = [];
+            
+            generateWorld(worldGenParams);
+        }
+        
+        // Generate world based on parameters
+        function generateWorld(params) {
+            // Create noise function for terrain generation
+            function noise2D(x, y, scale, octaves) {
+                let value = 0;
+                let amplitude = 1;
+                let frequency = scale;
+                let maxValue = 0;
+                
+                for (let i = 0; i < octaves; i++) {
+                    value += Math.sin(x * frequency) * Math.cos(y * frequency) * amplitude;
+                    maxValue += amplitude;
+                    amplitude *= 0.5;
+                    frequency *= 2;
+                }
+                
+                return value / maxValue;
+            }
+            
+            // Clear world
+            for (let y = 0; y < WORLD_HEIGHT; y++) {
+                if (!world[y]) world[y] = [];
+                if (!temperature[y]) temperature[y] = [];
+                for (let x = 0; x < WORLD_WIDTH; x++) {
+                    world[y][x] = -1; // Start with all water
+                    temperature[y][x] = 22.5;
+                }
+            }
+            
+            const continentScale = 0.05 + (5 - params.continentSize) * 0.03;
+            const landThreshold = 1 - (params.landCoverage / 100);
+            
+            // Generate main continents
+            for (let y = 0; y < WORLD_HEIGHT; y++) {
+                for (let x = 0; x < WORLD_WIDTH; x++) {
+                    // Create wrapped coordinates for seamless edges
+                    const wx = (x / WORLD_WIDTH) * Math.PI * 2;
+                    const wy = (y / WORLD_HEIGHT) * Math.PI;
+                    
+                    // Generate base terrain
+                    let height = noise2D(wx, wy, continentScale, 4);
+                    
+                    // Add some randomness
+                    height += Math.random() * 0.2 - 0.1;
+                    
+                    // Create land based on threshold
+                    if (height > landThreshold) {
+                        world[y][x] = 0; // Land
+                    }
+                }
+            }
+            
+            // Add islands based on frequency
+            if (params.islandFreq > 0) {
+                const islandCount = Math.floor((params.islandFreq / 100) * 20);
+                for (let i = 0; i < islandCount; i++) {
+                    const cx = Math.random() * WORLD_WIDTH;
+                    const cy = Math.random() * WORLD_HEIGHT;
+                    const radius = Math.random() * 3 + 1;
+                    
+                    for (let y = 0; y < WORLD_HEIGHT; y++) {
+                        for (let x = 0; x < WORLD_WIDTH; x++) {
+                            const dist = Math.sqrt(Math.pow(x - cx, 2) + Math.pow(y - cy, 2));
+                            if (dist < radius && Math.random() < 0.7) {
+                                world[y][x] = 0; // Create island
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Smooth coastlines
+            for (let i = 0; i < 2; i++) {
+                const newWorld = JSON.parse(JSON.stringify(world));
+                for (let y = 1; y < WORLD_HEIGHT - 1; y++) {
+                    for (let x = 1; x < WORLD_WIDTH - 1; x++) {
+                        let landNeighbors = 0;
+                        for (let dy = -1; dy <= 1; dy++) {
+                            for (let dx = -1; dx <= 1; dx++) {
+                                if (world[y + dy][x + dx] === 0 || world[y + dy][x + dx] > 0) {
+                                    landNeighbors++;
+                                }
+                            }
+                        }
+                        
+                        // Smooth based on neighbors
+                        if (landNeighbors >= 5) {
+                            newWorld[y][x] = 0;
+                        } else if (landNeighbors <= 3) {
+                            newWorld[y][x] = -1;
+                        }
+                    }
+                }
+                world = newWorld;
+            }
+            
+            // Add initial daisies
+            if (params.daisyDensity > 0) {
+                for (let y = 0; y < WORLD_HEIGHT; y++) {
+                    for (let x = 0; x < WORLD_WIDTH; x++) {
+                        if (world[y][x] === 0 && Math.random() < params.daisyDensity / 100) {
+                            // Random daisy type
+                            world[y][x] = Math.floor(Math.random() * 8) + 1;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Draw world preview
+        function drawWorldPreview() {
+            const previewCanvas = document.getElementById('worldPreview');
+            if (!previewCanvas) return;
+            
+            const ctx = previewCanvas.getContext('2d');
+            const scaleX = previewCanvas.width / WORLD_WIDTH;
+            const scaleY = previewCanvas.height / WORLD_HEIGHT;
+            
+            ctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+            
+            for (let y = 0; y < WORLD_HEIGHT; y++) {
+                for (let x = 0; x < WORLD_WIDTH; x++) {
+                    const cellX = x * scaleX;
+                    const cellY = y * scaleY;
+                    
+                    if (world[y][x] === -1) {
+                        ctx.fillStyle = WATER_COLOR;
+                    } else if (world[y][x] === 0) {
+                        ctx.fillStyle = GROUND_COLOR;
+                    } else {
+                        ctx.fillStyle = DAISY_COLORS[world[y][x] - 1];
+                    }
+                    
+                    ctx.fillRect(cellX, cellY, scaleX, scaleY);
+                }
+            }
+        }
+        
+        // Get control values
+        function getControls() {
+            return {
+                solarInput: parseFloat(document.getElementById('solarInput').value) / 100,
+                cloudAlbedo: parseFloat(document.getElementById('cloudAlbedo').value) / 100,
+                greenhouse: parseFloat(document.getElementById('greenhouse').value) / 100,
+                growthRate: parseFloat(document.getElementById('growthRate').value) / 100,
+                mutationRate: parseFloat(document.getElementById('mutationRate').value) / 100,
+                thermalTolerance: parseFloat(document.getElementById('thermalTolerance').value) / 100,
+                volcanic: parseFloat(document.getElementById('volcanic').value) / 100,
+                erosion: parseFloat(document.getElementById('erosion').value) / 100,
+                driftRate: parseFloat(document.getElementById('driftRate').value) / 100
+            };
+        }
+        
+        // Calculate temperature for a cell
+        function calculateTemperature(x, y, controls) {
+            let baseTemp = 5 + controls.solarInput * 50; // Base from solar input
+            
+            // Local albedo effect
+            if (world[y][x] > 0) {
+                const daisyType = world[y][x] - 1;
+                const albedo = DAISY_ALBEDOS[daisyType];
+                baseTemp *= (1 - albedo * 0.5); // Daisies affect local temperature
+            }
+            
+            // Greenhouse effect
+            baseTemp += controls.greenhouse * 15;
+            
+            // Cloud albedo (global cooling)
+            baseTemp -= controls.cloudAlbedo * 10;
+            
+            // Average with neighbors for smoothing
+            let avgTemp = baseTemp;
+            let count = 1;
+            for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    if (dx === 0 && dy === 0) continue;
+                    const nx = x + dx;
+                    const ny = y + dy;
+                    if (nx >= 0 && nx < WORLD_WIDTH && ny >= 0 && ny < WORLD_HEIGHT) {
+                        avgTemp += temperature[ny][nx];
+                        count++;
+                    }
+                }
+            }
+            
+            return avgTemp / count;
+        }
+        
+        // Daisy growth logic
+        function updateDaisies(controls) {
+            const newWorld = JSON.parse(JSON.stringify(world));
+            
+            for (let y = 0; y < WORLD_HEIGHT; y++) {
+                for (let x = 0; x < WORLD_WIDTH; x++) {
+                    if (world[y][x] === -1) continue; // Skip water
+                    
+                    const temp = temperature[y][x];
+                    const optimalTemp = 22.5;
+                    const tolerance = 15 + controls.thermalTolerance * 25;
+                    
+                    // Check if temperature is suitable for life
+                    if (Math.abs(temp - optimalTemp) > tolerance) {
+                        // Too hot or cold - daisy dies more readily
+                        if (world[y][x] > 0 && Math.random() < 0.3) {
+                            newWorld[y][x] = 0;
+                        }
+                        continue;
+                    }
+                    
+                    // Selective pressure: daisies less suited to temperature have chance to die
+                    if (world[y][x] > 0) {
+                        const daisyType = world[y][x] - 1;
+                        const daisyAlbedo = DAISY_ALBEDOS[daisyType];
+                        
+                        // Calculate how well this daisy type suits current temperature
+                        let suitability = 1.0;
+                        if (temp > optimalTemp && daisyAlbedo < 0.5) {
+                            // Too hot and daisy is dark (absorbs heat) - bad match
+                            suitability = 0.7;
+                        } else if (temp < optimalTemp && daisyAlbedo > 0.5) {
+                            // Too cold and daisy is light (reflects heat) - bad match  
+                            suitability = 0.7;
+                        }
+                        
+                        // Chance to die if poorly suited
+                        if (suitability < 1.0 && Math.random() > suitability) {
+                            newWorld[y][x] = 0;
+                            continue;
+                        }
+                    }
+                    
+                    // Growth and spread
+                    if (world[y][x] > 0) {
+                        // Spread to neighbors
+                        if (Math.random() < controls.growthRate * 0.3) {
+                            const dx = Math.floor(Math.random() * 3) - 1;
+                            const dy = Math.floor(Math.random() * 3) - 1;
+                            const nx = x + dx;
+                            const ny = y + dy;
+                            
+                            if (nx >= 0 && nx < WORLD_WIDTH && ny >= 0 && ny < WORLD_HEIGHT && 
+                                world[ny][nx] === 0) {
+                                // Mutation chance
+                                if (Math.random() < controls.mutationRate) {
+                                    // Temperature-aware mutation
+                                    const neighborTemp = temperature[ny][nx];
+                                    const tempDiff = neighborTemp - optimalTemp;
+                                    let mutatedType;
+                                    
+                                    if (tempDiff > 5) {
+                                        // Hot area - bias toward lighter colors
+                                        mutatedType = Math.floor(Math.random() * 5) + 1; // Types 1-5
+                                    } else if (tempDiff < -5) {
+                                        // Cold area - bias toward darker colors  
+                                        mutatedType = Math.floor(Math.random() * 5) + 4; // Types 4-8
+                                    } else {
+                                        // Neutral area - any color
+                                        mutatedType = Math.floor(Math.random() * 8) + 1;
+                                    }
+                                    
+                                    newWorld[ny][nx] = mutatedType;
+                                } else {
+                                    newWorld[ny][nx] = world[y][x];
+                                }
+                            }
+                        }
+                    } else if (world[y][x] === 0) {
+                        // Empty land - chance for spontaneous growth
+                        if (Math.random() < controls.growthRate * 0.01) {
+                            // Select daisy color based on current temperature needs
+                            const tempDiff = temp - optimalTemp;
+                            let selectedType;
+                            
+                            if (tempDiff > 10) {
+                                // Too hot - need lighter daisies to reflect heat
+                                selectedType = Math.floor(Math.random() * 3) + 1; // Types 1-3 (lightest)
+                            } else if (tempDiff > 5) {
+                                // Moderately hot - prefer lighter but not extreme
+                                selectedType = Math.floor(Math.random() * 4) + 1; // Types 1-4
+                            } else if (tempDiff < -10) {
+                                // Too cold - need darker daisies to absorb heat
+                                selectedType = Math.floor(Math.random() * 3) + 6; // Types 6-8 (darkest)
+                            } else if (tempDiff < -5) {
+                                // Moderately cold - prefer darker but not extreme
+                                selectedType = Math.floor(Math.random() * 4) + 5; // Types 5-8
+                            } else {
+                                // Near optimal - any type can grow
+                                selectedType = Math.floor(Math.random() * 8) + 1;
+                            }
+                            
+                            newWorld[y][x] = selectedType;
+                        }
+                    }
+                }
+            }
+            
+            // Geological changes
+            if (Math.random() < controls.volcanic * 0.01) {
+                // Random volcanic activity
+                const vx = Math.floor(Math.random() * WORLD_WIDTH);
+                const vy = Math.floor(Math.random() * WORLD_HEIGHT);
+                if (world[vy][vx] === -1) {
+                    newWorld[vy][vx] = 0; // Create land
+                }
+            }
+            
+            if (Math.random() < controls.erosion * 0.01) {
+                // Random erosion
+                const ex = Math.floor(Math.random() * WORLD_WIDTH);
+                const ey = Math.floor(Math.random() * WORLD_HEIGHT);
+                if (world[ey][ex] === 0) {
+                    // Check if near water
+                    let nearWater = false;
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            const nx = ex + dx;
+                            const ny = ey + dy;
+                            if (nx >= 0 && nx < WORLD_WIDTH && ny >= 0 && ny < WORLD_HEIGHT && 
+                                world[ny][nx] === -1) {
+                                nearWater = true;
+                            }
+                        }
+                    }
+                    if (nearWater) {
+                        newWorld[ey][ex] = -1; // Erode to water
+                    }
+                }
+            }
+            
+            world = newWorld;
+        }
+        
+        // Calculate global statistics
+        function calculateStats() {
+            let totalTemp = 0;
+            let totalDaisies = 0;
+            let totalAlbedo = 0;
+            let cellCount = 0;
+            
+            for (let y = 0; y < WORLD_HEIGHT; y++) {
+                for (let x = 0; x < WORLD_WIDTH; x++) {
+                    if (world[y][x] !== -1) {
+                        totalTemp += temperature[y][x];
+                        cellCount++;
+                        
+                        if (world[y][x] > 0) {
+                            totalDaisies++;
+                            totalAlbedo += DAISY_ALBEDOS[world[y][x] - 1];
+                        } else {
+                            totalAlbedo += 0.3; // Ground albedo
+                        }
+                    }
+                }
+            }
+            
+            return {
+                avgTemp: cellCount > 0 ? totalTemp / cellCount : 0,
+                daisyCount: totalDaisies,
+                avgAlbedo: cellCount > 0 ? totalAlbedo / cellCount : 0.3
+            };
+        }
+        
+        // Draw the world
+        function drawWorld() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let y = 0; y < WORLD_HEIGHT; y++) {
+                for (let x = 0; x < WORLD_WIDTH; x++) {
+                    const cellX = x * CELL_SIZE;
+                    const cellY = y * CELL_SIZE;
+                    
+                    if (showTemperature) {
+                        // Temperature overlay
+                        const temp = temperature[y][x];
+                        const hue = 240 - (temp / 50) * 240; // Blue (cold) to Red (hot)
+                        ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
+                    } else {
+                        // Normal view
+                        if (world[y][x] === -1) {
+                            ctx.fillStyle = WATER_COLOR;
+                        } else if (world[y][x] === 0) {
+                            ctx.fillStyle = GROUND_COLOR;
+                        } else {
+                            ctx.fillStyle = DAISY_COLORS[world[y][x] - 1];
+                        }
+                    }
+                    
+                    ctx.fillRect(cellX, cellY, CELL_SIZE, CELL_SIZE);
+                    
+                    // Draw grid
+                    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+                    ctx.strokeRect(cellX, cellY, CELL_SIZE, CELL_SIZE);
+                }
+            }
+        }
+        
+        // Draw temperature graph
+        function drawGraph() {
+            tempGraphCtx.clearRect(0, 0, tempGraphCanvas.width, tempGraphCanvas.height);
+            
+            if (tempHistory.length < 2) return;
+            
+            const width = tempGraphCanvas.width;
+            const height = tempGraphCanvas.height;
+            const step = width / MAX_HISTORY;
+            
+            // Draw grid
+            tempGraphCtx.strokeStyle = 'rgba(255,255,255,0.1)';
+            for (let i = 0; i <= 4; i++) {
+                const y = (height / 4) * i;
+                tempGraphCtx.beginPath();
+                tempGraphCtx.moveTo(0, y);
+                tempGraphCtx.lineTo(width, y);
+                tempGraphCtx.stroke();
+            }
+            
+            // Draw temperature line
+            tempGraphCtx.strokeStyle = '#ff6b6b';
+            tempGraphCtx.lineWidth = 2;
+            tempGraphCtx.beginPath();
+            for (let i = 0; i < tempHistory.length; i++) {
+                const x = i * step;
+                const y = height - (tempHistory[i] / 50) * height;
+                if (i === 0) {
+                    tempGraphCtx.moveTo(x, y);
+                } else {
+                    tempGraphCtx.lineTo(x, y);
+                }
+            }
+            tempGraphCtx.stroke();
+            
+            // Draw population line
+            tempGraphCtx.strokeStyle = '#4ecdc4';
+            tempGraphCtx.beginPath();
+            for (let i = 0; i < popHistory.length; i++) {
+                const x = i * step;
+                const y = height - (popHistory[i] / (WORLD_WIDTH * WORLD_HEIGHT * 0.5)) * height;
+                if (i === 0) {
+                    tempGraphCtx.moveTo(x, y);
+                } else {
+                    tempGraphCtx.lineTo(x, y);
+                }
+            }
+            tempGraphCtx.stroke();
+            
+            // Draw solar input line
+            tempGraphCtx.strokeStyle = '#ffe66d';
+            tempGraphCtx.beginPath();
+            for (let i = 0; i < solarHistory.length; i++) {
+                const x = i * step;
+                const y = height - solarHistory[i] * height;
+                if (i === 0) {
+                    tempGraphCtx.moveTo(x, y);
+                } else {
+                    tempGraphCtx.lineTo(x, y);
+                }
+            }
+            tempGraphCtx.stroke();
+        }
+        
+        // Update simulation
+        function update() {
+            const controls = getControls();
+            
+            // Always update temperatures for display purposes
+            for (let y = 0; y < WORLD_HEIGHT; y++) {
+                for (let x = 0; x < WORLD_WIDTH; x++) {
+                    temperature[y][x] = calculateTemperature(x, y, controls);
+                }
+            }
+            
+            if (!isPaused) {
+                // Update daisies
+                updateDaisies(controls);
+                
+                // Calculate stats
+                const stats = calculateStats();
+                
+                // Update history
+                tempHistory.push(stats.avgTemp);
+                popHistory.push(stats.daisyCount);
+                solarHistory.push(controls.solarInput);
+                
+                if (tempHistory.length > MAX_HISTORY) {
+                    tempHistory.shift();
+                    popHistory.shift();
+                    solarHistory.shift();
+                }
+                
+                // Update display
+                document.getElementById('globalTemp').textContent = stats.avgTemp.toFixed(1) + '°C';
+                document.getElementById('totalDaisies').textContent = stats.daisyCount;
+                document.getElementById('planetAlbedo').textContent = stats.avgAlbedo.toFixed(2);
+                document.getElementById('timeElapsed').textContent = time++;
+                
+                drawGraph();
+            } else {
+                // Update stats display even when paused
+                const stats = calculateStats();
+                document.getElementById('globalTemp').textContent = stats.avgTemp.toFixed(1) + '°C';
+                document.getElementById('totalDaisies').textContent = stats.daisyCount;
+                document.getElementById('planetAlbedo').textContent = stats.avgAlbedo.toFixed(2);
+            }
+            
+            // Always update world display
+            drawWorld();
+        }
+        
+        // Create daisy palette
+        function createDaisyPalette() {
+            const palette = document.getElementById('daisyPalette');
+            palette.innerHTML = '';
+            
+            for (let i = 0; i < DAISY_COLORS.length; i++) {
+                const colorDiv = document.createElement('div');
+                colorDiv.className = 'daisy-color';
+                colorDiv.style.backgroundColor = DAISY_COLORS[i];
+                colorDiv.dataset.type = i + 1;
+                
+                if (i + 1 === selectedDaisyType) {
+                    colorDiv.classList.add('selected');
+                }
+                
+                colorDiv.addEventListener('click', () => {
+                    document.querySelectorAll('.daisy-color').forEach(d => d.classList.remove('selected'));
+                    colorDiv.classList.add('selected');
+                    selectedDaisyType = i + 1;
+                    isErasing = false;
+                    document.getElementById('eraserBtn').classList.remove('active');
+                });
+                
+                palette.appendChild(colorDiv);
+            }
+        }
+        
+        // Canvas interaction
+        canvas.addEventListener('mousedown', (e) => {
+            painting = true;
+            paint(e);
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            if (painting) {
+                paint(e);
+            }
+        });
+        
+        canvas.addEventListener('mouseup', () => {
+            painting = false;
+        });
+        
+        canvas.addEventListener('mouseleave', () => {
+            painting = false;
+        });
+        
+        let painting = false;
+        
+        function paint(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / CELL_SIZE);
+            const y = Math.floor((e.clientY - rect.top) / CELL_SIZE);
+            
+            const radius = Math.floor(brushSize / 2);
+            
+            for (let dy = -radius; dy <= radius; dy++) {
+                for (let dx = -radius; dx <= radius; dx++) {
+                    const px = x + dx;
+                    const py = y + dy;
+                    
+                    if (px >= 0 && px < WORLD_WIDTH && py >= 0 && py < WORLD_HEIGHT) {
+                        if (world[py][px] !== -1) { // Don't paint on water
+                            if (isErasing) {
+                                world[py][px] = 0;
+                            } else {
+                                world[py][px] = selectedDaisyType;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            drawWorld();
+        }
+        
+        // Control event listeners
+        document.getElementById('toggleTemp').addEventListener('click', () => {
+            showTemperature = !showTemperature;
+            document.getElementById('toggleTemp').textContent = showTemperature ? 'Hide Temperature' : 'Show Temperature';
+            document.getElementById('toggleTemp').classList.toggle('active', showTemperature);
+            drawWorld();
+        });
+        
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            isPaused = !isPaused;
+            document.getElementById('pauseBtn').textContent = isPaused ? 'Resume' : 'Pause';
+            document.getElementById('pauseBtn').classList.toggle('active', isPaused);
+        });
+        
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            const currentParams = {...worldGenParams};
+            initWorld();
+            worldGenParams = currentParams;
+            drawWorld();
+        });
+        
+        document.getElementById('newWorldBtn').addEventListener('click', () => {
+            document.getElementById('worldGenModal').style.display = 'flex';
+            generateWorld(worldGenParams);
+            drawWorldPreview();
+        });
+        
+        document.getElementById('eraserBtn').addEventListener('click', () => {
+            isErasing = !isErasing;
+            document.getElementById('eraserBtn').classList.toggle('active', isErasing);
+            if (isErasing) {
+                document.querySelectorAll('.daisy-color').forEach(d => d.classList.remove('selected'));
+            }
+        });
+        
+        document.getElementById('brushSize').addEventListener('input', (e) => {
+            brushSize = parseInt(e.target.value);
+            document.getElementById('brushSizeValue').textContent = brushSize;
+        });
+        
+        // Slider value updates
+        const sliderMappings = {
+            'solarInput': 'solarValue',
+            'cloudAlbedo': 'cloudAlbedoValue',
+            'greenhouse': 'greenhouseValue',
+            'growthRate': 'growthValue',
+            'mutationRate': 'mutationValue',
+            'thermalTolerance': 'toleranceValue',
+            'volcanic': 'volcValue',
+            'erosion': 'erosionValue',
+            'driftRate': 'driftValue'
+        };
+        
+        Object.keys(sliderMappings).forEach(sliderId => {
+            const slider = document.getElementById(sliderId);
+            const valueSpan = document.getElementById(sliderMappings[sliderId]);
+            
+            if (slider && valueSpan) {
+                slider.addEventListener('input', () => {
+                    valueSpan.textContent = slider.value;
+                });
+            }
+        });
+        
+        // World generation controls
+        document.getElementById('landCoverage').addEventListener('input', (e) => {
+            worldGenParams.landCoverage = parseInt(e.target.value);
+            document.getElementById('landCoverageValue').textContent = e.target.value + '%';
+            generateWorld(worldGenParams);
+            drawWorldPreview();
+        });
+        
+        document.getElementById('continentSize').addEventListener('input', (e) => {
+            worldGenParams.continentSize = parseInt(e.target.value);
+            const sizes = ['Tiny', 'Small', 'Medium', 'Large', 'Huge'];
+            document.getElementById('continentSizeValue').textContent = sizes[e.target.value - 1];
+            generateWorld(worldGenParams);
+            drawWorldPreview();
+        });
+        
+        document.getElementById('islandFreq').addEventListener('input', (e) => {
+            worldGenParams.islandFreq = parseInt(e.target.value);
+            const freqs = ['None', 'Low', 'Medium', 'High', 'Very High'];
+            const index = Math.floor(e.target.value / 25);
+            document.getElementById('islandFreqValue').textContent = freqs[Math.min(index, 4)];
+            generateWorld(worldGenParams);
+            drawWorldPreview();
+        });
+        
+        document.getElementById('daisyDensity').addEventListener('input', (e) => {
+            worldGenParams.daisyDensity = parseInt(e.target.value);
+            document.getElementById('daisyDensityValue').textContent = e.target.value + '%';
+            generateWorld(worldGenParams);
+            drawWorldPreview();
+        });
+        
+        document.getElementById('regenerateBtn').addEventListener('click', () => {
+            generateWorld(worldGenParams);
+            drawWorldPreview();
+        });
+        
+        document.getElementById('startSimBtn').addEventListener('click', () => {
+            document.getElementById('worldGenModal').style.display = 'none';
+            drawWorld();
+        });
+        
+        // Initialize
+        createDaisyPalette();
+        
+        // Show world generation modal on start
+        document.getElementById('worldGenModal').style.display = 'flex';
+        initWorld();
+        drawWorldPreview();
+        
+        // Start simulation loop
+        setInterval(update, 100);
+    </script>
+</body>
+</html>
